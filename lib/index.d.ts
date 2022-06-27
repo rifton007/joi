@@ -1,6 +1,6 @@
 // The following definitions have been copied (almost) as-is from:
 // https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/hapi__joi
-// 
+//
 // Note: This file is expected to change dramatically in the next major release and have been
 // imported here to make migrating back to the "joi" module name simpler. It include known bugs
 // and other issues. It does not include some new features included in version 17.2.0 or newer.
@@ -143,6 +143,13 @@ declare namespace Joi {
          * @default true
          */
         externals?: boolean;
+        /**
+         * if true, and "abortEarly" is false, the external rules set with `any.external()` will be executed even after synchronous validators have failed.
+         * This setting has no effect if "abortEarly" is true since external rules get executed after all other validators. Default: false.
+         *
+         * @default true
+         */
+        alwaysExecuteExternals?: boolean;
         /**
          * when true, do not apply default values.
          *
@@ -576,7 +583,7 @@ declare namespace Joi {
         iterables?: boolean;
 
         /**
-         * when true, the value of the reference is used instead of its name in error messages 
+         * when true, the value of the reference is used instead of its name in error messages
          * and template rendering. Defaults to false.
          */
         render?: boolean;
@@ -706,16 +713,22 @@ declare namespace Joi {
 
     interface ExternalHelpers {
         prefs: ValidationOptions;
+        path: string[],
+        label: string,
+        root: any,
+        context: any,
+        error: ExternalValidationFunctionErrorCallback,
     }
 
     type ExternalValidationFunction<V = any> = (value: V, helpers: ExternalHelpers) => V | undefined;
+    type ExternalValidationFunctionErrorCallback = (message: string) => void;
 
     type SchemaLikeWithoutArray = string | number | boolean | null | Schema | SchemaMap;
     type SchemaLike = SchemaLikeWithoutArray | object;
 
     type NullableType<T> = undefined | null | T
 
-    type ObjectPropertiesSchema<T = any> = 
+    type ObjectPropertiesSchema<T = any> =
         T extends NullableType<string>
         ? Joi.StringSchema
         : T extends NullableType<number>
@@ -730,11 +743,11 @@ declare namespace Joi {
         ? Joi.ArraySchema
         : T extends NullableType<object>
         ? ObjectSchema<StrictSchemaMap<T>>
-        : never    
-    
+        : never
+
     type PartialSchemaMap<TSchema = any> = {
         [key in keyof TSchema]?: SchemaLike | SchemaLike[];
-    } 
+    }
 
     type StrictSchemaMap<TSchema = any> =  {
         [key in keyof TSchema]-?: ObjectPropertiesSchema<TSchema[key]>
